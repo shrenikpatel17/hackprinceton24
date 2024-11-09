@@ -8,9 +8,20 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        RalewayBold: ["RalewayBold"],
+        RalewayExtraBold: ["RalewayExtraBold"],
+        RalewayExtraLight: ["RalewayExtraLight"],
+        RalewayLight: ["RalewayLight"],
+        RalewayMedium: ["RalewayMedium"],
+        RalewayRegular: ["RalewayRegular"],
+        RalewaySemiBold: ["RalewaySemiBold"],
+      },
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        'grad-light-blue': '#F1F5FF',
+        'grad-dark-blue': '#A5B5DA',
+        'box-fill-flue': '#E5ECFF',
+        'text-blue': '#1D2B4E',
       },
     },
   },
