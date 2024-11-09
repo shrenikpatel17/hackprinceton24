@@ -9,19 +9,27 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        RalewayBold: ["RalewayBold"],
-        RalewayExtraBold: ["RalewayExtraBold"],
-        RalewayExtraLight: ["RalewayExtraLight"],
-        RalewayLight: ["RalewayLight"],
-        RalewayMedium: ["RalewayMedium"],
-        RalewayRegular: ["RalewayRegular"],
-        RalewaySemiBold: ["RalewaySemiBold"],
+        MonoSemiBold: ["MonoSemiBold"],
+        MonoReg: ["MonoReg"],
+        RalewayReg: ["RalewayReg"],
+        RalewayThin: ["RalewayThin"],
+        RalewayVThin: ["RalewayVThin"],
+        RalewayMed: ["RalewayMed"]
+
       },
       colors: {
-        'grad-light-blue': '#F1F5FF',
-        'grad-dark-blue': '#A5B5DA',
-        'box-fill-flue': '#E5ECFF',
-        'text-blue': '#1D2B4E',
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        'grad-light': '#F1F6F0',
+        'grad-dark' : '#C1D1BE',
+        'text-green': '#044723',
+        'hover-dark-green':'#003318',
+        'icon-color': '#547A51',
+        'bg-color': '#FEFFFC',
+        'hover-light':'#f2f9f0',
+        'text' : '#1D2B4E',
+        'purple-bg' : '#E5ECFF',
+        'orange' : '#FF751F'
       },
     },
   },

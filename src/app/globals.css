@@ -3,22 +3,54 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 241, 245, 255; /* grad-light-blue */
-  --background-end-rgb: 165, 181, 218; /* grad-dark-blue */
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
-body {
-  background: linear-gradient(to bottom, 
-    rgb(var(--background-start-rgb)) 0%, 
-    rgb(var(--background-end-rgb)) 100%);
-}
-
-
-/* @media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
-} */
+}
+@font-face {
+  font-family: "MonoSemiBold";
+  src: url("../app/fonts/JetBrainsMono-2.304/fonts/webfonts/JetBrainsMono-SemiBold.woff2");
+}
+@font-face {
+  font-family: "MonoReg";
+  src: url("../app/fonts/JetBrainsMono-2.304/fonts/webfonts/JetBrainsMono-Regular.woff2");
+}
 
+@font-face {
+  font-family: "RalewayReg";
+  src: url("../app/fonts/Raleway/Raleway-Regular.ttf");
+}
+
+@font-face {
+  font-family: "RalewayThin";
+  src: url("../app/fonts/Raleway/Raleway-Light.ttf");
+}
+
+@font-face {
+  font-family: "RalewayVThin";
+  src: url("../app/fonts/Raleway/Raleway-ExtraLight.ttf");
+}
+
+@font-face {
+  font-family: "RalewayMed";
+  src: url("../app/fonts/Raleway/Raleway-Medium.ttf");
+}
+
+
+body {
+  color: white;
+  background: linear-gradient(to bottom, #F1F5FF 25%, #A4B4D9 100%);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
