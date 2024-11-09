@@ -5,20 +5,21 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const PortfolioDashboard = () => {
   const portfolioData = {
-    totalValue: 10000,
     sectors: [
-      { name: 'Healthcare', percentage: 20, value: 2000 },
-      { name: 'Finance', percentage: 30, value: 3000 },
-      { name: 'Energy', percentage: 10, value: 1000 },
-      { name: 'S&P 500', percentage: 40, value: 4000 }
+      { name: 'Healthcare', percentage: 20 },
+      { name: 'Finance', percentage: 30 },
+      { name: 'Energy', percentage: 10 },
+      { name: 'S&P 500', percentage: 40 }
     ],
     stocks: [
-      { symbol: 'AAPL', allocation: 20, value: 2000 },
-      { symbol: 'GOOG', allocation: 30, value: 3000 },
-      { symbol: 'AMZN', allocation: 10, value: 1000 },
-      { symbol: 'NVDA', allocation: 40, value: 4000 }
+      { symbol: 'AAPL', allocation: 20 },
+      { symbol: 'GOOG', allocation: 30 },
+      { symbol: 'AMZN', allocation: 10 },
+      { symbol: 'NVDA', allocation: 40 }
     ]
   };
+
+  const [question, setQuestion] = useState("");
 
   interface CardItem {
     period: string;
@@ -81,6 +82,7 @@ const PortfolioDashboard = () => {
       ]
     },
   ];
+
   
   interface PaginatedCardProps {
     sectorData: SectorData;
@@ -138,6 +140,24 @@ const PortfolioDashboard = () => {
       </div>
     );
   };
+
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch('/api/getStructuredPort', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ question }),
+      });
+    
+      if (!response.ok) {
+        throw new Error('Failed to fetch GPT response');
+      }
+    } catch (error) {
+      console.error("Error getting GPT response", error);
+    }
+  }
   
 
   return (
@@ -178,10 +198,11 @@ const PortfolioDashboard = () => {
   <input
     type="text"
     placeholder="Describe a portfolio..."
+    value={question}
+    onChange={(e) => setQuestion(e.target.value)}
     className="w-full p-4 pt-3 pb-3 border border-text rounded-3xl bg-purple-bg focus:outline-none"
   />
-  <button className="absolute right-4 top-1/2 -translate-y-1/2 bg-purple-bg p-2 rounded-full">
-    {/* Search Icon with 'text-text' color */}
+  <button className="absolute right-4 top-1/2 -translate-y-1/2 bg-purple-bg p-2 rounded-full" onClick={handleSubmit}>
     <Search className="w-6 h-6 text-text" />
   </button>
 </div>
@@ -192,9 +213,9 @@ const PortfolioDashboard = () => {
       <div className="mb-8 grid grid-cols-1 md:grid-cols-6 gap-3">
   {/* Left Panel (1/3 width) */}
   <div className="p-4 bg-purple-bg border border-text rounded-lg col-span-2">
-  <p className="text-sm font-MonoReg font-bold mb-4 flex items-center justify-center">
+  {/* <p className="text-sm font-MonoReg font-bold mb-4 flex items-center justify-center">
     Total Value: ${portfolioData.totalValue}
-  </p>
+  </p> */}
   <div className="space-y-2 font-MonoReg">
     {portfolioData.sectors.map((sector) => (
       <div key={sector.name} className="grid grid-cols-3 gap-4">
@@ -202,8 +223,6 @@ const PortfolioDashboard = () => {
         <span className="text-sm">{sector.name}</span>
         {/* Percentage Column */}
         <span className="text-sm text-center">{sector.percentage}%</span>
-        {/* Value Column */}
-        <span className="text-sm text-right">${sector.value}</span>
       </div>
     ))}
   </div>
@@ -217,7 +236,7 @@ const PortfolioDashboard = () => {
         <div key={i} className={`space-y-2 ${i !== 2 ? 'border-r border-text' : ''}`}>
           {portfolioData.stocks.map((stock) => (
             <div key={stock.symbol} className="text-sm font-MonoReg">
-              <div>{stock.symbol} {stock.allocation}% ${stock.value}</div>
+              <div>{stock.symbol} {stock.allocation}%</div>
             </div>
           ))}
         </div>
