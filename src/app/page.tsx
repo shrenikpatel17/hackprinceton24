@@ -2,8 +2,63 @@
 import { Search } from 'lucide-react';
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import * as rawdata from './data.json';
 
+interface Data {
+  [key: string]: {
+    [year: number]: number;
+  };
+}
+
+const data: Data = rawdata
 const PortfolioDashboard = () => {
+
+  //this function will return the array to feed into the graph.
+  //make sure to get the parameters right. startYear >= 1976.
+  const getLines = (annualContribution: number, startYear: number) => {
+    let lines: any = []
+
+    let allocation = portfolioData.sectors
+
+    let prevXvalue: any = null
+
+    for(let i = startYear; i <= 2023; i++){
+
+      let xValue: any = {}
+
+      xValue.name = i.toString()
+
+      let total = 0;
+      let totalInflation = 0;
+
+      allocation.forEach(sector => {
+        if(!prevXvalue){
+          xValue[sector.name] =  annualContribution * (sector.percentage / 100.0) * ((100 + data[sector.name][xValue.name])/100.0)
+          totalInflation += annualContribution * (sector.percentage / 100.0) * ((100 + data[sector.name][xValue.name] - data["Inflation"][xValue.name])/100.0)
+        }
+        else {
+          xValue[sector.name] = (prevXvalue[sector.name] + (annualContribution * (sector.percentage / 100.0)))  * ((100 + data[sector.name][xValue.name])/100.0)
+          totalInflation += (prevXvalue[sector.name] + (annualContribution * (sector.percentage / 100.0)))  * ((100 + data[sector.name][xValue.name] - data["Inflation"][xValue.name])/100.0)
+        }
+        total += xValue[sector.name]
+      })
+      xValue['Portfolio'] = total
+      xValue['Portfolio - Inflation Adjusted'] = totalInflation
+
+      if(!prevXvalue){
+        xValue['Savings Account - Inflation Adjusted'] = annualContribution * ((100 + 0.45 - data["Inflation"][xValue.name]) / 100.0)
+      }
+      else {
+        xValue['Savings Account - Inflation Adjusted'] = (prevXvalue['Savings Account - Inflation Adjusted'] + annualContribution) * ((100 + 0.45 - data["Inflation"][xValue.name]) / 100.0)
+      }
+
+      lines.push(xValue)
+      prevXvalue = xValue
+      
+    }
+
+    return lines;
+  }
 
   const [question, setQuestion] = useState("");
   const [isPortfolioGenerated, setIsPortfolioGenerated] = useState(false);
