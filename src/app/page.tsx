@@ -4,22 +4,10 @@ import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const PortfolioDashboard = () => {
-  const portfolioData = {
-    sectors: [
-      { name: 'Healthcare', percentage: 20 },
-      { name: 'Finance', percentage: 30 },
-      { name: 'Energy', percentage: 10 },
-      { name: 'S&P 500', percentage: 40 }
-    ],
-    stocks: [
-      { symbol: 'AAPL', allocation: 20 },
-      { symbol: 'GOOG', allocation: 30 },
-      { symbol: 'AMZN', allocation: 10 },
-      { symbol: 'NVDA', allocation: 40 }
-    ]
-  };
 
   const [question, setQuestion] = useState("");
+  const [isPortfolioGenerated, setIsPortfolioGenerated] = useState(false);
+  const [portfolioData, setPortfolioData] = useState<any>();
 
   interface CardItem {
     period: string;
@@ -143,17 +131,25 @@ const PortfolioDashboard = () => {
 
   const handleSubmit = async () => {
     try {
+      setIsPortfolioGenerated(false)
+
       const response = await fetch('/api/getStructuredPort', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ prompt: question }), // Changed from { question } to { prompt: question }
       });
-    
+  
       if (!response.ok) {
         throw new Error('Failed to fetch GPT response');
       }
+  
+      const data = await response.json(); // Add this to handle the response
+      setPortfolioData(data);
+      console.log(data); // Log the parsed response
+      setIsPortfolioGenerated(true)
+      
     } catch (error) {
       console.error("Error getting GPT response", error);
     }
@@ -194,30 +190,32 @@ const PortfolioDashboard = () => {
       <h1 className="text-4xl mb-8 font-RalewayMed">Good Morning, Shrenik</h1>
       
       {/* Search Bar */}
-      <div className="relative mb-20">
-  <input
-    type="text"
-    placeholder="Describe a portfolio..."
-    value={question}
-    onChange={(e) => setQuestion(e.target.value)}
-    className="w-full p-4 pt-3 pb-3 border border-text rounded-3xl bg-purple-bg focus:outline-none"
-  />
-  <button className="absolute right-4 top-1/2 -translate-y-1/2 bg-purple-bg p-2 rounded-full" onClick={handleSubmit}>
-    <Search className="w-6 h-6 text-text" />
-  </button>
-</div>
+  <div className="relative mb-20">
+    <input
+      type="text"
+      placeholder="Describe a portfolio..."
+      value={question}
+      onChange={(e) => setQuestion(e.target.value)}
+      className="w-full p-4 pt-3 pb-3 border border-text rounded-3xl bg-purple-bg focus:outline-none"
+    />
+    <button className="absolute right-4 top-1/2 -translate-y-1/2 bg-purple-bg p-2 rounded-full" onClick={handleSubmit}>
+      <Search className="w-6 h-6 text-text" />
+    </button>
+  </div>
 
-
-      {/* Portfolio Summary */}
-      <h3 className="font-RalewayMed mb-2 text-lg">Customized Portfolio</h3>
-      <div className="mb-8 grid grid-cols-1 md:grid-cols-6 gap-3">
-  {/* Left Panel (1/3 width) */}
+  {isPortfolioGenerated && 
+  
+  <>
+  <h3 className="font-RalewayMed mb-2 text-lg">Customized Portfolio</h3>
+    <div className="mb-8 grid grid-cols-1 md:grid-cols-6 gap-3">
   <div className="p-4 bg-purple-bg border border-text rounded-lg col-span-2">
-  {/* <p className="text-sm font-MonoReg font-bold mb-4 flex items-center justify-center">
-    Total Value: ${portfolioData.totalValue}
-  </p> */}
+
+  <p className="text-sm font-MonoReg font-bold mb-4 flex items-center justify-center">
+    Annual Contribution: ${portfolioData.annualContribution}
+  </p>
+
   <div className="space-y-2 font-MonoReg">
-    {portfolioData.sectors.map((sector) => (
+    {portfolioData.sectors.map((sector:any) => (
       <div key={sector.name} className="grid grid-cols-3 gap-4">
         {/* Sector Name */}
         <span className="text-sm">{sector.name}</span>
@@ -234,7 +232,7 @@ const PortfolioDashboard = () => {
     <div className="grid grid-cols-3 gap-4">
       {Array(3).fill(null).map((_, i) => (
         <div key={i} className={`space-y-2 ${i !== 2 ? 'border-r border-text' : ''}`}>
-          {portfolioData.stocks.map((stock) => (
+          {portfolioData.stocks.slice(4 * i, 4 * i + 4).map((stock:any) => (
             <div key={stock.symbol} className="text-sm font-MonoReg">
               <div>{stock.symbol} {stock.allocation}%</div>
             </div>
@@ -278,6 +276,8 @@ const PortfolioDashboard = () => {
           {/* Placeholder for future content */}
         </div>
       </div>
+  
+  </>}
     </div>
     </>
   );
