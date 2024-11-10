@@ -2,7 +2,7 @@
 import { Search } from 'lucide-react';
 import React, { useState, PureComponent } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
 import * as rawdata from './data.json';
 
 interface Data {
@@ -32,28 +32,27 @@ const PortfolioDashboard = () => {
 
       allocation.forEach((sector:any) => {
         if(!prevXvalue){
-          xValue[sector.name] =  annualContribution * (sector.percentage / 100.0) * ((100 + data[sector.name][xValue.name])/100.0)
-          totalInflation += annualContribution * (sector.percentage / 100.0) * ((100 + data[sector.name][xValue.name] - data["Inflation"][xValue.name])/100.0)
+          xValue[sector.name] =  parseFloat((annualContribution * (sector.percentage / 100.0) * ((100 + data[sector.name][xValue.name])/100.0)).toFixed(2))
+          totalInflation += parseFloat((annualContribution * (sector.percentage / 100.0) * ((100 + data[sector.name][xValue.name] - data["Inflation"][xValue.name])/100.0)).toFixed(2))
         }
         else {
-          xValue[sector.name] = (prevXvalue[sector.name] + (annualContribution * (sector.percentage / 100.0)))  * ((100 + data[sector.name][xValue.name])/100.0)
-          totalInflation += (prevXvalue[sector.name] + (annualContribution * (sector.percentage / 100.0)))  * ((100 + data[sector.name][xValue.name] - data["Inflation"][xValue.name])/100.0)
+          xValue[sector.name] = parseFloat(((prevXvalue[sector.name] + (annualContribution * (sector.percentage / 100.0)))  * ((100 + data[sector.name][xValue.name])/100.0)).toFixed(2))
+          totalInflation += parseFloat(((prevXvalue[sector.name] + (annualContribution * (sector.percentage / 100.0)))  * ((100 + data[sector.name][xValue.name] - data["Inflation"][xValue.name])/100.0)).toFixed(2))
         }
         total += xValue[sector.name]
       })
-      xValue['Portfolio'] = total
+      xValue['Portfolio'] = parseFloat((total).toFixed(2))
       xValue['Portfolio - Inflation Adjusted'] = totalInflation
 
       if(!prevXvalue){
-        xValue['Savings Account - Inflation Adjusted'] = annualContribution * ((100 + 0.45 - data["Inflation"][xValue.name]) / 100.0)
+        xValue['Savings Account - Inflation Adjusted'] = parseFloat((annualContribution * ((100 + 0.45 - data["Inflation"][xValue.name]) / 100.0)).toFixed(2))
       }
       else {
-        xValue['Savings Account - Inflation Adjusted'] = (prevXvalue['Savings Account - Inflation Adjusted'] + annualContribution) * ((100 + 0.45 - data["Inflation"][xValue.name]) / 100.0)
+        xValue['Savings Account - Inflation Adjusted'] = parseFloat(((prevXvalue['Savings Account - Inflation Adjusted'] + annualContribution) * ((100 + 0.45 - data["Inflation"][xValue.name]) / 100.0)).toFixed(2))
       }
 
       lines.push(xValue)
       prevXvalue = xValue
-      
     }
 
     return lines;
@@ -205,7 +204,7 @@ const PortfolioDashboard = () => {
       setPortfolioData(res);
       console.log(res); // Log the parsed response
       setIsPortfolioGenerated(true) 
-      setLineGraphData(getLines(res.annualContribution, 1980, res.sectors))     
+      setLineGraphData(getLines(res.annualContribution, res.startYear, res.sectors))     
     // } catch (error) {
     //   console.error("Error getting GPT response", error);
     // }
@@ -222,7 +221,7 @@ const PortfolioDashboard = () => {
     <h1 className="text-text text-xl font-RalewayMed">Stratify</h1>
     </div>
     
-    <div className="flex items-center text-text font-MonoReg text-xs">
+    <div className="flex items-center text-text font-MonoReg text-xs overflow-y-hidden">
     Made with 
     <span className="mx-1"></span> 
     <div className="text-icon-color mx-1">
@@ -266,19 +265,17 @@ const PortfolioDashboard = () => {
   
   <div className='overflow-y-auto max-h-[59vh]'>
   <h3 className="font-RalewayMed mb-2 text-lg">Customized Portfolio</h3>
-    <div className="mb-8 grid grid-cols-1 md:grid-cols-6 gap-3">
-  <div className="p-4 bg-purple-bg border border-text rounded-lg col-span-2">
+    <div className="mb-8 grid grid-cols-1 md:grid-cols-12 gap-3">
+  <div className="p-4 bg-purple-bg border border-text rounded-lg col-span-4">
 
-  <p className="text-sm font-MonoReg font-bold mb-4 flex items-center justify-center">
+  <p className="text-sm font-MonoSemiBold font-bold mb-4 flex items-center justify-center">
     Annual Contribution: ${portfolioData.annualContribution}
   </p>
 
-  <div className="space-y-2 font-MonoReg">
+  <div className="space-y-2 font-MonoReg ml-8">
     {portfolioData.sectors.map((sector:any) => (
-      <div key={sector.name} className="grid grid-cols-3 gap-4">
-        {/* Sector Name */}
+      <div key={sector.name} className="grid grid-cols-2 gap-16">
         <span className="text-sm">{sector.name}</span>
-        {/* Percentage Column */}
         <span className="text-sm text-center">{sector.percentage}%</span>
       </div>
     ))}
@@ -286,9 +283,12 @@ const PortfolioDashboard = () => {
 </div>
 
   {/* Middle Panel (1/2 width) */}
-  <div className="p-4 bg-purple-bg border border-text rounded-lg col-span-3">
-  <div className='mt-6 ml-6'> 
-    <div className="grid grid-cols-3 gap-4">
+  <div className="p-4 bg-purple-bg border border-text rounded-lg col-span-5">
+  <div className=''> 
+  <p className="text-sm font-MonoSemiBold font-bold mb-4 flex items-center justify-center">
+   Example Portfolio
+  </p>
+    <div className="ml-10 grid grid-cols-3 gap-8">
       {Array(3).fill(null).map((_, i) => (
         <div key={i} className={`space-y-2 ${i !== 2 ? 'border-r border-text' : ''}`}>
           {portfolioData.stocks.slice(4 * i, 4 * i + 4).map((stock:any) => (
@@ -304,8 +304,26 @@ const PortfolioDashboard = () => {
 
 
   {/* Right Panel (1/6 width) */}
-  <div className="p-4 bg-purple-bg border border-text rounded-lg col-span-1">
-    {/* Add content for the right panel here */}
+  <div className="p-2 text-xs font-MonoReg bg-purple-bg border border-text rounded-lg col-span-3">
+  {/* <p className="text-sm font-MonoReg font-bold">
+   Investment Distribution
+  </p> */}
+  
+  <ResponsiveContainer width="100%" height="100%">
+        <PieChart width={50} height={50}>
+          <Pie
+            dataKey="percentage"
+            startAngle={180}
+            endAngle={0}
+            data={portfolioData.sectors}
+            cx="50%"
+            cy="88%"
+            outerRadius={90}
+            fill="#8884d8"
+            label
+          />
+        </PieChart>
+      </ResponsiveContainer>
   </div>
 </div>
 
@@ -332,8 +350,12 @@ const PortfolioDashboard = () => {
             <Tooltip />
             <Legend />
             {lineGraphData && Object.keys(lineGraphData[0]).slice(1).map((line: any, index: any) => {
+              
+              const colorPalette = ["#FABE86", "#FCF28C", "#BAFAC5", "#ABE5F5", "#95C6FB", "#DBAFF9", "FBC8EB"];
+              const color = colorPalette[index % colorPalette.length];
+
               return(
-              <Line type="monotone" key={line} dataKey={line} stroke="#8884d8" activeDot={{ r: 4 }} />
+              <Line type="monotone" key={line} dataKey={line} stroke={color} activeDot={{ r: 4 }} />
               );
             })}
             

@@ -204,7 +204,8 @@ const PortfolioSchema = z.object({
       const total = stocks.reduce((sum, stock) => sum + stock.allocation, 0);
       return Math.abs(total - 100) <= 0.01;
     }, { message: "Stock allocations must sum to 100" }),
-  annualContribution: z.number()
+  annualContribution: z.number(),
+  startYear: z.number()
 });
 
 // Infer TypeScript types from Zod schema
@@ -234,7 +235,9 @@ export async function POST(req: NextRequest) {
     4. Stock allocations must sum to 100
     5. Include 4-8 sectors and exactly 12 stocks
     6. Stock symbols must be valid NYSE/NASDAQ symbols (1-5 capital letters)
-    7. Annual contribution should be the amount specified in the prompt, or 10000 if not specified`;
+    7. Annual contribution should be the amount specified in the prompt, or 10000 if not specified
+    8. Must return a START YEAR date that is the number of user inputted years before 2023
+    `;
 
     const completion = await openai.beta.chat.completions.parse({
       model: 'gpt-4o-2024-08-06',
