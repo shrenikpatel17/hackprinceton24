@@ -164,18 +164,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 const VALID_SECTORS = [
-  'SP500',
+  'S&P 500',
   'Healthcare',
   'Utilities',
   'Real Estate',
-  'Industrials',
+  'Manufacturing',
   'Energy',
   'Consumer Discretionary',
-  'Materials',
-  'Financials',
+  'Raw Materials',
+  'Finance',
   'Consumer Staples',
-  'Information Technology',
-  'Telecom Services',
+  'Technology',
+  'Telecommunications',
   'Bonds'
 ] as const;
 

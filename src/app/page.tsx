@@ -1,7 +1,8 @@
 "use client"
 import { Search } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, PureComponent } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import * as rawdata from './data.json';
 
 interface Data {
@@ -15,10 +16,8 @@ const PortfolioDashboard = () => {
 
   //this function will return the array to feed into the graph.
   //make sure to get the parameters right. startYear >= 1976.
-  const getLines = (annualContribution: number, startYear: number) => {
+  const getLines = (annualContribution: number, startYear: number, allocation: any) => {
     let lines: any = []
-
-    let allocation = portfolioData.sectors
 
     let prevXvalue: any = null
 
@@ -31,7 +30,7 @@ const PortfolioDashboard = () => {
       let total = 0;
       let totalInflation = 0;
 
-      allocation.forEach(sector => {
+      allocation.forEach((sector:any) => {
         if(!prevXvalue){
           xValue[sector.name] =  annualContribution * (sector.percentage / 100.0) * ((100 + data[sector.name][xValue.name])/100.0)
           totalInflation += annualContribution * (sector.percentage / 100.0) * ((100 + data[sector.name][xValue.name] - data["Inflation"][xValue.name])/100.0)
@@ -63,6 +62,8 @@ const PortfolioDashboard = () => {
   const [question, setQuestion] = useState("");
   const [isPortfolioGenerated, setIsPortfolioGenerated] = useState(false);
   const [portfolioData, setPortfolioData] = useState<any>();
+  const [lineGraphData, setLineGraphData] = useState<any>(null);
+
 
   interface CardItem {
     period: string;
@@ -185,7 +186,7 @@ const PortfolioDashboard = () => {
   };
 
   const handleSubmit = async () => {
-    try {
+    // try {
       setIsPortfolioGenerated(false)
 
       const response = await fetch('/api/getStructuredPort', {
@@ -200,15 +201,18 @@ const PortfolioDashboard = () => {
         throw new Error('Failed to fetch GPT response');
       }
   
-      const data = await response.json(); // Add this to handle the response
-      setPortfolioData(data);
-      console.log(data); // Log the parsed response
-      setIsPortfolioGenerated(true)
-      
-    } catch (error) {
-      console.error("Error getting GPT response", error);
-    }
+      const res = await response.json(); // Add this to handle the response
+      setPortfolioData(res);
+      console.log(res); // Log the parsed response
+      setIsPortfolioGenerated(true) 
+      setLineGraphData(getLines(res.annualContribution, 1980, res.sectors))     
+    // } catch (error) {
+    //   console.error("Error getting GPT response", error);
+    // }
+
   }
+
+  console.log(lineGraphData)
   
 
   return (
@@ -245,7 +249,7 @@ const PortfolioDashboard = () => {
       <h1 className="text-4xl mb-8 font-RalewayMed">Good Morning, Shrenik</h1>
       
       {/* Search Bar */}
-  <div className="relative mb-20">
+  <div className="relative mb-16">
     <input
       type="text"
       placeholder="Describe a portfolio..."
@@ -260,7 +264,7 @@ const PortfolioDashboard = () => {
 
   {isPortfolioGenerated && 
   
-  <>
+  <div className='overflow-y-auto max-h-[59vh]'>
   <h3 className="font-RalewayMed mb-2 text-lg">Customized Portfolio</h3>
     <div className="mb-8 grid grid-cols-1 md:grid-cols-6 gap-3">
   <div className="p-4 bg-purple-bg border border-text rounded-lg col-span-2">
@@ -308,8 +312,34 @@ const PortfolioDashboard = () => {
       {/* Historical Analysis Section */}
       <div className="mb-8">
         <h3 className="font-['RalewayMed'] mb-4 text-lg">Historical Analysis</h3>
-        <div className="h-64 bg-purple-bg border border-text rounded-lg">
-          {/* Placeholder for future visualization */}
+        <div className="h-96 bg-purple-bg border border-text rounded-lg font-MonoReg text-sm py-4">
+          
+          <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            width={800}
+            height={700}
+            data={lineGraphData}
+            margin={{
+              top: 10,
+              right: 30,
+              left: 20,
+              bottom: 5,
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            {lineGraphData && Object.keys(lineGraphData[0]).slice(1).map((line: any, index: any) => {
+              return(
+              <Line type="monotone" key={line} dataKey={line} stroke="#8884d8" activeDot={{ r: 4 }} />
+              );
+            })}
+            
+          </LineChart>
+          </ResponsiveContainer>
+
         </div>
       </div>
 
@@ -332,7 +362,7 @@ const PortfolioDashboard = () => {
         </div>
       </div>
   
-  </>}
+  </div>}
     </div>
     </>
   );
