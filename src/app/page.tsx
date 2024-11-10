@@ -59,6 +59,89 @@ const PortfolioDashboard = () => {
     return lines;
   }
 
+  const getDeltasExplanation = (startYear: number, allocation: any) => {
+    let cardData: any = []
+
+    allocation.forEach((sector: any) => {
+      let card: any = { sector: sector.name }
+
+      let topGains = [{period: startYear, percentage: data[sector.name][startYear]}, {period: startYear, percentage: data[sector.name][startYear+1]}, {period: startYear, percentage: data[sector.name][startYear+2]}].sort((a, b) => b.percentage - a.percentage)
+      let topLoss = [{period: startYear, percentage: data[sector.name][startYear]}, {period: startYear, percentage: data[sector.name][startYear+1]}, {period: startYear, percentage: data[sector.name][startYear+2]}].sort((a, b) => a.percentage - b.percentage)
+
+      for(let i = startYear + 3; i <= 2023; i++){
+        let delta = data[sector.name][i]
+        if(delta >= topGains[0].percentage){
+          topGains[2] = topGains[1]
+          topGains[1] = topGains[0]
+          topGains[0] = {period: i, percentage: delta}
+        }
+        else if(delta >= topGains[1].percentage){
+          topGains[2] = topGains[1]
+          topGains[1] = {period: i, percentage: delta}
+        }
+        else if(delta >= topGains[2].percentage){
+          topGains[2] = {period: i, percentage: delta}
+        }
+        if(delta <= topLoss[0].percentage){
+          topGains[2] = topGains[1]
+          topGains[1] = topGains[0]
+          topGains[0] = {period: i, percentage: delta}
+        }
+        else if(delta <= topLoss[1].percentage){
+          topGains[2] = topGains[1]
+          topGains[1] = {period: i, percentage: delta}
+        }
+        else if(delta <= topLoss[2].percentage){
+          topGains[2] = {period: i, percentage: delta}
+        }
+      }
+
+      topGains.forEach( async (event: any) => {
+
+        const response = await fetch('/api/getDeltaInfo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({sector: sector.name, ...event}), // Changed from { question } to { prompt: question }
+        });
+    
+        if (!response.ok) {
+          throw new Error('Failed to fetch GPT response');
+        }
+    
+        const res = await response.json(); // Add this to handle the response
+        console.log(res)
+
+        event.description = res
+      })
+
+      topLoss.forEach( async (event: any) => {
+
+        const response = await fetch('/api/getDeltaInfo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({sector: sector.name, ...event}), // Changed from { question } to { prompt: question }
+        });
+    
+        if (!response.ok) {
+          throw new Error('Failed to fetch GPT response');
+        }
+    
+        const res = await response.json(); // Add this to handle the response
+        console.log(res)
+
+        event.description = res
+      })
+
+      card.data = topGains.concat(topLoss)
+
+      cardData.push(card)
+    });
+  }
+
   const [question, setQuestion] = useState("");
   const [isPortfolioGenerated, setIsPortfolioGenerated] = useState(false);
   const [portfolioData, setPortfolioData] = useState<any>();
