@@ -159,54 +159,7 @@
 // }
 
 import OpenAI from 'openai';
-import { zodResponseFormat } from "openai/helpers/zod";
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-
-const VALID_SECTORS = [
-  'S&P 500',
-  'Healthcare',
-  'Utilities',
-  'Real Estate',
-  'Manufacturing',
-  'Energy',
-  'Consumer Discretionary',
-  'Raw Materials',
-  'Finance',
-  'Consumer Staples',
-  'Technology',
-  'Telecommunications',
-  'Bonds'
-] as const;
-
-// Define Zod schemas
-const SectorSchema = z.object({
-  name: z.enum(VALID_SECTORS),
-  percentage: z.number()
-});
-
-const StockSchema = z.object({
-  symbol: z.string(),
-  allocation: z.number()
-});
-
-const PortfolioSchema = z.object({
-  sectors: z.array(SectorSchema),
-    // .refine((sectors) => {
-    //   const total = sectors.reduce((sum, sector) => sum + sector.percentage, 0);
-    //   return Math.abs(total - 100) <= 0.01;
-    // }, { message: "Sector percentages must sum to 100" }),
-  stocks: z.array(StockSchema),
-    // .refine((stocks) => {
-    //   const total = stocks.reduce((sum, stock) => sum + stock.allocation, 0);
-    //   return Math.abs(total - 100) <= 0.01;
-    // }, { message: "Stock allocations must sum to 100" }),
-  annualContribution: z.number(),
-  startYear: z.number()
-});
-
-// Infer TypeScript types from Zod schema
-type Portfolio = z.infer<typeof PortfolioSchema>;
 
 export async function POST(req: NextRequest) {
   const openai = new OpenAI({
@@ -214,54 +167,36 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    const body = await req.json();
-    const { prompt } = body;
+    const event = await req.json();
 
-    if (!prompt || typeof prompt !== 'string') {
+    if (!event) {
       return NextResponse.json(
         { error: 'Invalid or missing prompt' },
         { status: 400 }
       );
     }
 
-    const systemPrompt = `You are an investment advisor. Given an investment preference, you will return a portfolio allocation.
-    Your response MUST follow these rules:
-    1. Sector names MUST ONLY be from this list: ${VALID_SECTORS.join(', ')}
-    2. All percentage/allocation values must be numbers between 0 and 100
-    3. Sector percentages must sum to 100
-    4. Stock allocations MUST sum to 100. PLEASE ENSURE THE SUM OF ALL 12 STOCKS ALLOCATIONS IS 100 OR ELSE I WILL DIE!!!!!!!!!!
-    5. Include 4-8 sectors and exactly 12 stocks
-    6. Stock symbols must be valid NYSE/NASDAQ symbols (1-5 capital letters)
-    7. Annual contribution should be the amount specified in the prompt, or 10000 if not specified
-    8. Must return a START YEAR date that is the number of user inputted years before 2023
-    `;
+    const systemPrompt = "You are a helpful financial assistant. You must CONCISELY answer questions in TWO SENTENCES to explain the cause of certain market anomalies. Be as accurate and educational as possible.";
 
     const completion = await openai.beta.chat.completions.parse({
       model: 'gpt-4o-2024-08-06',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt }
+        { role: 'user', content: `Why did the ${event.sector} Sector / Industry stock market change by ${event.percentage} in ${event.period}?` }
       ],
-      response_format: zodResponseFormat(PortfolioSchema, "portfolio"),
       temperature: 0.2,
     });
 
-    const portfolio = completion.choices[0].message.parsed;
+    const response = completion.choices[0].message.content;
 
     // Log the validated portfolio
-    console.log('Validated portfolio:', portfolio);
+    console.log(event, response);
 
-    return NextResponse.json(portfolio);
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Error: ", error);
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid portfolio structure', details: error.issues },
-        { status: 400 }
-      );
-    }
     return NextResponse.json(
-      { error: 'Failed to generate portfolio recommendation' },
+      { error: 'Failed to generate delta information' },
       { status: 500 }
     );
   }

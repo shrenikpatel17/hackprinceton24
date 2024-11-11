@@ -51,7 +51,8 @@ body {
   background: var(--background);
   background-repeat: no-repeat;
   font-family: Arial, Helvetica, sans-serif;
-  height: 100vh;
+  height: 105vh;
+  overflow-y: none;
 }
 
 @layer utilities {

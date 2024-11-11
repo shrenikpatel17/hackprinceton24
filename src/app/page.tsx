@@ -4,6 +4,11 @@ import React, { useState, PureComponent } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
 import * as rawdata from './data.json';
+import ReactMarkdown from 'react-markdown';
+import Image from "next/image"
+import logo from "./images/startlogo.png"
+import { marked } from 'marked';
+
 
 interface Data {
   [key: string]: {
@@ -21,6 +26,8 @@ const PortfolioDashboard = () => {
 
     let prevXvalue: any = null
 
+    let delta = 1;
+
     for(let i = startYear; i <= 2023; i++){
 
       let xValue: any = {}
@@ -28,21 +35,20 @@ const PortfolioDashboard = () => {
       xValue.name = i.toString()
 
       let total = 0;
-      let totalInflation = 0;
+      
+      delta *= (100 - data['Inflation'][xValue.name])/100.0
 
       allocation.forEach((sector:any) => {
         if(!prevXvalue){
           xValue[sector.name] =  parseFloat((annualContribution * (sector.percentage / 100.0) * ((100 + data[sector.name][xValue.name])/100.0)).toFixed(2))
-          totalInflation += parseFloat((annualContribution * (sector.percentage / 100.0) * ((100 + data[sector.name][xValue.name] - data["Inflation"][xValue.name])/100.0)).toFixed(2))
         }
         else {
           xValue[sector.name] = parseFloat(((prevXvalue[sector.name] + (annualContribution * (sector.percentage / 100.0)))  * ((100 + data[sector.name][xValue.name])/100.0)).toFixed(2))
-          totalInflation += parseFloat(((prevXvalue[sector.name] + (annualContribution * (sector.percentage / 100.0)))  * ((100 + data[sector.name][xValue.name] - data["Inflation"][xValue.name])/100.0)).toFixed(2))
         }
         total += xValue[sector.name]
       })
       xValue['Portfolio'] = parseFloat((total).toFixed(2))
-      xValue['Portfolio - Inflation Adjusted'] = totalInflation
+      xValue['Portfolio - Inflation Adjusted'] = parseFloat((total * delta).toFixed(2))
 
       if(!prevXvalue){
         xValue['Savings Account - Inflation Adjusted'] = parseFloat((annualContribution * ((100 + 0.45 - data["Inflation"][xValue.name]) / 100.0)).toFixed(2))
@@ -58,81 +64,136 @@ const PortfolioDashboard = () => {
     return lines;
   }
 
+  
+
   const [question, setQuestion] = useState("");
   const [isPortfolioGenerated, setIsPortfolioGenerated] = useState(false);
   const [portfolioData, setPortfolioData] = useState<any>();
   const [lineGraphData, setLineGraphData] = useState<any>(null);
-
-
-  interface CardItem {
-    period: string;
-    percentage: string;
-    description: string;
-  }
-  
-  interface SectorData {
-    sector: string;
-    data: CardItem[];
-  }
-
-  const CardData: SectorData[] = [
-    {
-      sector: 'Healthcare',
-      data: [
-        { period: '2019-20', percentage: '24%', description: 'This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020.' },
-        { period: '2020-21', percentage: '28%', description: 'This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020.' },
-        { period: '2021-22', percentage: '32%', description: 'This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020.' },
-      ]
-    },
-    {
-      sector: 'Finance',
-      data: [
-        { period: '2019-20', percentage: '15%', description: 'This is the first finance explanation. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020.' },
-        { period: '2020-21', percentage: '18%', description: 'This is the second finance explanation. This explains the trends in 2020-21...' },
-        { period: '2021-22', percentage: '21%', description: 'This is the third finance explanation. This explains the trends in 2021-22...' },
-      ]
-    },
-    {
-      sector: 'Energy',
-      data: [
-        { period: '2019-20', percentage: '12%', description: 'This is the first energy explanation. This explains the trends in 2019-20...' },
-        { period: '2020-21', percentage: '14%', description: 'This is the second energy explanation. This explains the trends in 2020-21...' },
-        { period: '2021-22', percentage: '16%', description: 'This is the third energy explanation. This explains the trends in 2021-22...' },
-      ]
-    },
-    {
-      sector: 'Healthcare',
-      data: [
-        { period: '2019-20', percentage: '24%', description: 'This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020.' },
-        { period: '2020-21', percentage: '28%', description: 'This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020.' },
-        { period: '2021-22', percentage: '32%', description: 'This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020.' },
-      ]
-    },
-    {
-      sector: 'Finance',
-      data: [
-        { period: '2019-20', percentage: '15%', description: 'This is the first finance explanation. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020. This is the first healthcare explanation. This explains the trends in 2019-2020.' },
-        { period: '2020-21', percentage: '18%', description: 'This is the second finance explanation. This explains the trends in 2020-21...' },
-        { period: '2021-22', percentage: '21%', description: 'This is the third finance explanation. This explains the trends in 2021-22...' },
-      ]
-    },
-    {
-      sector: 'Energy',
-      data: [
-        { period: '2019-20', percentage: '12%', description: 'This is the first energy explanation. This explains the trends in 2019-20...' },
-        { period: '2020-21', percentage: '14%', description: 'This is the second energy explanation. This explains the trends in 2020-21...' },
-        { period: '2021-22', percentage: '16%', description: 'This is the third energy explanation. This explains the trends in 2021-22...' },
-      ]
-    },
-  ];
+  const [cardData, setCardData] = useState<any>(null);
+  const [resArr, setResArr] = useState<any>([])
+  const [analysis, setAnalysis] = useState("")
 
   
+  const getDeltasExplanation = (startYear: number, allocation: any) => {
+    let cardData: any = []
+
+    allocation.forEach((sector: any) => {
+      let card: any = { sector: sector.name }
+
+      let topGains = [{period: startYear, percentage: data[sector.name][startYear]}, {period: startYear, percentage: data[sector.name][startYear+1]}, {period: startYear, percentage: data[sector.name][startYear+2]}].sort((a, b) => b.percentage - a.percentage)
+      let topLoss = [{period: startYear, percentage: data[sector.name][startYear]}, {period: startYear, percentage: data[sector.name][startYear+1]}, {period: startYear, percentage: data[sector.name][startYear+2]}].sort((a, b) => a.percentage - b.percentage)
+
+      for(let i = startYear + 3; i <= 2023; i++){
+        let delta = data[sector.name][i]
+        if(delta >= topGains[0].percentage){
+          topGains[2] = topGains[1]
+          topGains[1] = topGains[0]
+          topGains[0] = {period: i, percentage: delta}
+        }
+        else if(delta >= topGains[1].percentage){
+          topGains[2] = topGains[1]
+          topGains[1] = {period: i, percentage: delta}
+        }
+        else if(delta >= topGains[2].percentage){
+          topGains[2] = {period: i, percentage: delta}
+        }
+        if(delta <= topLoss[0].percentage){
+          topLoss[2] = topLoss[1]
+          topLoss[1] = topLoss[0]
+          topLoss[0] = {period: i, percentage: delta}
+        }
+        else if(delta <= topLoss[1].percentage){
+          topLoss[2] = topLoss[1]
+          topLoss[1] = {period: i, percentage: delta}
+        }
+        else if(delta <= topLoss[2].percentage){
+          topLoss[2] = {period: i, percentage: delta}
+        }
+      }
+
+      topLoss = topLoss.filter((event) => event.percentage < 0)
+
+      topGains.forEach( async (event: any, index) => {
+
+        const response = await fetch('/api/getDeltaInfo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({sector: sector.name, ...event}), // Changed from { question } to { prompt: question }
+        });
+    
+        if (!response.ok) {
+          throw new Error('Failed to fetch GPT response');
+        }
+
+        const res = await response.json(); // Add this to handle the response
+        console.log(res)
+        setResArr([res].concat(resArr))
+
+        event.description = res
+
+        
+      })
+
+      topLoss.forEach( async (event: any, index) => {
+
+        const response = await fetch('/api/getDeltaInfo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({sector: sector.name, ...event}), // Changed from { question } to { prompt: question }
+        });
+    
+        if (!response.ok) {
+          throw new Error('Failed to fetch GPT response');
+        }
+    
+        const res = await response.json(); // Add this to handle the response
+        console.log(res)
+        setResArr([res].concat(resArr))
+
+        event.description = res
+      })
+
+      card.data = topGains.concat(topLoss)
+
+      cardData.push(card)
+    });
+
+    setCardData(cardData);
+    return cardData;
+  }
+
+  const getAnalysis = async() => {
+    const response = await fetch('/api/getAnalysis', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({portfolioData}), 
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch GPT response');
+    }
+
+    const res = await response.json(); 
+    console.log(res)
+
+    setAnalysis(res)
+  }
+
+
   interface PaginatedCardProps {
-    sectorData: SectorData;
+    index: number;
   }
   
-  const PaginatedCard: React.FC<PaginatedCardProps> = ({ sectorData }) => {
+  const PaginatedCard: React.FC<PaginatedCardProps> = ({ index }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const sectorData = cardData[index]
     const totalSlides = sectorData.data.length;
   
     const nextSlide = () => {
@@ -152,9 +213,16 @@ const PortfolioDashboard = () => {
             <h4 className="font-MonoReg">{sectorData.sector}</h4>
             <p className="text-sm text-gray-600 font-MonoReg">{currentData.period}</p>
           </div>
-          <span className="bg-green-100 px-2 py-1 rounded-xl text-sm text-text-green font-MonoReg">
-            {currentData.percentage}
-          </span>
+          {currentData.percentage > 0 ? (
+            <span className="bg-green-100 px-2 py-1 rounded-xl text-sm text-text-green font-MonoReg">
+              {currentData.percentage}
+            </span>
+          ) : (
+            <span className="bg-red-100 px-2 py-1 rounded-xl text-sm text-red-700 font-MonoReg">
+              {currentData.percentage}
+            </span>
+          )}
+          
         </div>
         <div className="h-32 overflow-y-auto text-sm font-MonoReg mb-6">
           {currentData.description}
@@ -204,20 +272,23 @@ const PortfolioDashboard = () => {
       setPortfolioData(res);
       console.log(res); // Log the parsed response
       setIsPortfolioGenerated(true) 
-      setLineGraphData(getLines(res.annualContribution, res.startYear, res.sectors))     
+      setLineGraphData(getLines(res.annualContribution, res.startYear, res.sectors))  
+      getDeltasExplanation(res.startYear, res.sectors) 
+      getAnalysis()
     // } catch (error) {
     //   console.error("Error getting GPT response", error);
     // }
 
   }
 
-  console.log(lineGraphData)
+  console.log(cardData)
   
 
   return (
     <>
     <header className="flex justify-between items-center mb-4 p-4 pr-8 pl-8">
     <div className="flex items-center">
+    <Image src={logo} alt="SustainLLM Icon" width={32} height={32} className="mr-2" />
     <h1 className="text-text text-xl font-RalewayMed">Stratify</h1>
     </div>
     
@@ -351,7 +422,7 @@ const PortfolioDashboard = () => {
             <Legend />
             {lineGraphData && Object.keys(lineGraphData[0]).slice(1).map((line: any, index: any) => {
               
-              const colorPalette = ["#FABE86", "#FCF28C", "#BAFAC5", "#ABE5F5", "#95C6FB", "#DBAFF9", "FBC8EB"];
+              const colorPalette = ["#D73838", "#EF933C", "#E5BF00", "#37B34C", "#3773B3", "#6737B3", "#AC37B3", "#379EB3"];
               const color = colorPalette[index % colorPalette.length];
 
               return(
@@ -369,8 +440,9 @@ const PortfolioDashboard = () => {
       <h3 className="font-['RalewayMed'] mb-4 text-lg">Significant Deltas</h3>
       <div className="relative overflow-x-auto">
         <div className="flex space-x-4 pb-4">
-          {CardData.map((sectorData, index) => (
-            <PaginatedCard key={index} sectorData={sectorData} />
+          {console.log(resArr)}
+          {resArr.length >= 1 && cardData && cardData.map((sectorData:any, index:any) => (
+            <PaginatedCard key={index} index={index} />
           ))}
         </div>
       </div>
@@ -378,10 +450,11 @@ const PortfolioDashboard = () => {
 
       {/* Generalized Analysis Section */}
       <div>
-        <h3 className="font-['RalewayMed'] mb-4 text-lg">Generalized Analysis</h3>
+        <h3 className="font-['RalewayMed'] text-lg">Generalized Analysis</h3>
         <div className="p-4 bg-purple-bg border border-text rounded-lg min-h-[200px]">
-          {/* Placeholder for future content */}
-        </div>
+              {/* <ReactMarkdown>{analysis}</ReactMarkdown> */}
+          <div dangerouslySetInnerHTML={{ __html: marked(analysis) }} className='font-MonoReg text-sm' />
+       </div>
       </div>
   
   </div>}
